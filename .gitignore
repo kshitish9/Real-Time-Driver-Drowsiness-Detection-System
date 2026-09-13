@@ -1,32 +1,19 @@
-# Virtual environments
-venv/
+# Local virtual environments
 drowsiness_env/
-.env
 
-# Python cache
-__pycache__/
-*.py[cod]
-*.pyo
-
-# Logs and runtime files
+# Runtime files
 logs/
 captures/
-*.log
 
-# Database
+# Local databases
 *.db
 *.sqlite
 *.sqlite3
 
-# Local data and generated files
-training_data.json
+# Generated project data
 performance_metrics.json
+training_data.json
 fast_alert_config.json
-
-# OS/editor files
-.DS_Store
-.vscode/
-.idea/
 
 # Large model files
 *.h5
