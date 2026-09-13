@@ -1,32 +1,56 @@
-# Secrets
-.env
-
-# Python cache
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
 
 # Virtual environments
 venv/
-drowsiness_env/
+.venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
 
 # Databases
 *.db
 *.sqlite
 *.sqlite3
 
-# Runtime files
-logs/
-captures/
-
-# Generated data
+# Generated data / metrics
+*_data.json
 performance_metrics.json
-training_data.json
 fast_alert_config.json
 
-# Local model files
+# Large ML model files
 *.dat
-*.pkl
-*.joblib
 *.h5
 *.keras
-*.onnx
+*.pkl
+*.pickle
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
