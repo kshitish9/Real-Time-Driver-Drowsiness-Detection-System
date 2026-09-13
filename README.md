@@ -22,10 +22,24 @@ A real-time drowsiness detection system using computer vision and machine learni
 - Webcam
 - 4GB RAM minimum
 
-### Installation
+## Installation
 
-1. **Clone the repository**
 ```bash
+# Clone the repository
 git clone https://github.com/kshitish9/Real-Time-Driver-Drowsiness-Detection-System.git
-cd drowsiness-detection
+
+# Navigate to the project directory
 cd Real-Time-Driver-Drowsiness-Detection-System
+```
+
+# Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+# Run the application
+
+```bash
+python main.py
+```
