@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings - Drowsiness Detection</title>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: #f2f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg-dark: rgba(255, 255, 255, 0.95);
+            --blur: blur(20px);
+            --primary: #007aff;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
+            --text: #1c1c1e;
+            --text-secondary: #6c6c70;
+            --border: rgba(60, 60, 67, 0.08);
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 15px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
+
+        /* iOS Header */
+        .ios-header {
+            background: var(--card-bg-dark);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--card-bg);
+            color: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 6px 12px 6px 6px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), #5856d6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Main Container */
+        .ios-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .page-title i {
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        /* iOS Cards */
+        .ios-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header i {
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Settings Group */
+        .settings-group {
+            margin-bottom: 24px;
+        }
+
+        .settings-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .settings-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .settings-label span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .settings-label .value-badge {
+            background: var(--border);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* iOS Style Sliders */
+        .ios-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .ios-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .ios-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .ios-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* iOS Style Select */
+        .ios-select {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            font-size: 15px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c6c70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+        }
+
+        .ios-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        /* iOS Style Input */
+        .ios-input {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            font-size: 15px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .ios-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            margin-left: 4px;
+        }
+
+        /* iOS Switch */
+        .ios-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 32px;
+        }
+
+        .ios-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e9e9ea;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 28px;
+            width: 28px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked + .switch-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .switch-slider:before {
+            transform: translateX(20px);
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+        }
+
+        .switch-label {
+            font-size: 15px;
+            color: var(--text);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .ios-button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .ios-button.primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .ios-button.primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        .ios-button.secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .ios-button.secondary:hover {
+            background: var(--background);
+        }
+
+        .ios-button:active {
+            transform: scale(0.98);
+        }
+
+        /* System Info Table */
+        .info-table {
+            width: 100%;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+        }
+
+        .status-badge.warning {
+            background: rgba(255, 159, 10, 0.1);
+            color: var(--warning);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 14px;
+            padding: 14px 20px;
+            box-shadow: var(--shadow-hover);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.info { border-left-color: var(--primary); }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS Header -->
+    <header class="ios-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-eye"></i>
+                <h1>Drowsiness Detection</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/analytics" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <div class="user-menu">
+                    <div class="user-avatar">A</div>
+                    <span style="font-size: 14px;">admin</span>
+                    <a href="/logout" style="color: var(--text-secondary); margin-left: 5px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="ios-container">
+        <h1 class="page-title">
+            <i class="fas fa-cog"></i> Settings
+        </h1>
+
+        <!-- Detection Settings -->
+        <div class="ios-card">
+            <div class="card-header">
+                <i class="fas fa-brain"></i>
+                <h3>Detection Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Eye Aspect Ratio (EAR) Threshold</span>
+                        <span class="value-badge" id="earValue">0.25</span>
+                    </div>
+                    <input type="range" class="ios-slider" id="earThreshold" min="0.1" max="0.4" step="0.01" value="0.25">
+                    <div class="slider-labels">
+                        <span>More sensitive</span>
+                        <span>Less sensitive</span>
+                    </div>
+                    <div class="input-hint">Lower values require more eye closure to trigger alert</div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Consecutive Frames</span>
+                        <span class="value-badge" id="framesValue">15</span>
+                    </div>
+                    <input type="range" class="ios-slider" id="consecutiveFrames" min="5" max="30" step="1" value="15">
+                    <div class="slider-labels">
+                        <span>Faster alert</span>
+                        <span>Slower alert</span>
+                    </div>
+                    <div class="input-hint">Number of frames eyes must be closed to trigger alert</div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Minimum Face Size</span>
+                    </div>
+                    <input type="number" class="ios-input" id="minFaceSize" value="60" min="30" max="200">
+                    <div class="input-hint">Minimum size of face to detect (pixels)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Settings -->
+        <div class="ios-card">
+            <div class="card-header">
+                <i class="fas fa-camera"></i>
+                <h3>Camera Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Camera Device</span>
+                    </div>
+                    <select class="ios-select" id="cameraDevice">
+                        <option value="0">Camera 0 (Default)</option>
+                        <option value="1">Camera 1</option>
+                        <option value="2">Camera 2</option>
+                    </select>
+                </div>
+
+                <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="settings-group">
+                        <div class="settings-label">
+                            <span>Resolution Width</span>
+                        </div>
+                        <select class="ios-select" id="cameraWidth">
+                            <option value="640">640p (SD)</option>
+                            <option value="800">800p</option>
+                            <option value="1280">1280p (HD)</option>
+                            <option value="1920">1920p (Full HD)</option>
+                        </select>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-label">
+                            <span>Resolution Height</span>
+                        </div>
+                        <select class="ios-select" id="cameraHeight">
+                            <option value="480">480p (SD)</option>
+                            <option value="600">600p</option>
+                            <option value="720">720p (HD)</option>
+                            <option value="1080">1080p (Full HD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="switch-row">
+                    <span class="switch-label">Enable Autofocus</span>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="autofocus" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-row">
+                    <span class="switch-label">Enable Auto Exposure</span>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="autoExposure" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Settings -->
+        <div class="ios-card">
+            <div class="card-header">
+                <i class="fas fa-bell"></i>
+                <h3>Alert Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="switch-row">
+                    <span class="switch-label">Enable Sound Alerts</span>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="soundAlert" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Alert Cooldown (seconds)</span>
+                    </div>
+                    <input type="number" class="ios-input" id="alertCooldown" value="3" min="1" max="10">
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Alert Volume</span>
+                        <span class="value-badge" id="volumeValue">70%</span>
+                    </div>
+                    <input type="range" class="ios-slider" id="alertVolume" min="0" max="100" value="70">
+                    <div class="slider-labels">
+                        <span><i class="fas fa-volume-off"></i></span>
+                        <span><i class="fas fa-volume-up"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Settings -->
+        <div class="ios-card">
+            <div class="card-header">
+                <i class="fas fa-tachometer-alt"></i>
+                <h3>Performance Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Frame Skip</span>
+                        <span class="value-badge" id="skipValue">1</span>
+                    </div>
+                    <input type="range" class="ios-slider" id="frameSkip" min="0" max="3" step="1" value="1">
+                    <div class="slider-labels">
+                        <span>Better accuracy</span>
+                        <span>Better performance</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Downsample Ratio</span>
+                        <span class="value-badge" id="ratioValue">0.75</span>
+                    </div>
+                    <input type="range" class="ios-slider" id="downsampleRatio" min="0.25" max="1.0" step="0.25" value="0.75">
+                    <div class="slider-labels">
+                        <span>Better quality</span>
+                        <span>Better speed</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-label">
+                        <span>Target FPS</span>
+                    </div>
+                    <input type="number" class="ios-input" id="targetFps" value="30" min="15" max="60">
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="ios-card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i>
+                <h3>System Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="info-table">
+                    <div class="info-row">
+                        <span class="info-label">OpenCV Version</span>
+                        <span class="info-value">4.8.1</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Python Version</span>
+                        <span class="info-value">3.10</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Camera Status</span>
+                        <span class="info-value">
+                            <span class="status-badge success" id="cameraStatus">✓ Ready</span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Database Size</span>
+                        <span class="info-value" id="dbSize">~1.2 MB</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Uptime</span>
+                        <span class="info-value" id="uptime">0 min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="ios-button secondary" onclick="resetToDefaults()">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+            <button class="ios-button primary" onclick="saveSettings()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Load settings on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            loadSystemInfo();
+        });
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                // Detection settings
+                document.getElementById('earThreshold').value = config.ear_threshold || 0.25;
+                document.getElementById('earValue').textContent = (config.ear_threshold || 0.25).toFixed(2);
+                document.getElementById('consecutiveFrames').value = config.consecutive_frames || 15;
+                document.getElementById('framesValue').textContent = config.consecutive_frames || 15;
+                document.getElementById('minFaceSize').value = config.min_face_size || 60;
+                
+                // Camera settings
+                document.getElementById('cameraWidth').value = config.camera_width || 640;
+                document.getElementById('cameraHeight').value = config.camera_height || 480;
+                document.getElementById('autofocus').checked = config.autofocus !== false;
+                document.getElementById('autoExposure').checked = config.auto_exposure !== false;
+                
+                // Alert settings
+                document.getElementById('soundAlert').checked = config.alert_sound !== false;
+                document.getElementById('alertCooldown').value = config.alert_cooldown || 3;
+                document.getElementById('alertVolume').value = config.alert_volume || 70;
+                document.getElementById('volumeValue').textContent = (config.alert_volume || 70) + '%';
+                
+                // Performance settings
+                document.getElementById('frameSkip').value = config.frame_skip || 1;
+                document.getElementById('skipValue').textContent = config.frame_skip || 1;
+                document.getElementById('downsampleRatio').value = config.downsample_ratio || 0.75;
+                document.getElementById('ratioValue').textContent = (config.downsample_ratio || 0.75).toFixed(2);
+                document.getElementById('targetFps').value = config.target_fps || 30;
+                
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+                showNotification('Failed to load settings', 'error');
+            }
+        }
+
+        async function loadSystemInfo() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                
+                document.getElementById('cameraStatus').innerHTML = status.camera_ready ? 
+                    '<span class="status-badge success">✓ Ready</span>' : 
+                    '<span class="status-badge warning">⚠ Not Available</span>';
+                
+                if (status.stats?.uptime) {
+                    document.getElementById('uptime').textContent = status.stats.uptime + ' min';
+                }
+            } catch (error) {
+                console.error('Failed to load system info:', error);
+            }
+        }
+
+        // Live value updates
+        document.getElementById('earThreshold').addEventListener('input', function(e) {
+            document.getElementById('earValue').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        document.getElementById('consecutiveFrames').addEventListener('input', function(e) {
+            document.getElementById('framesValue').textContent = e.target.value;
+        });
+
+        document.getElementById('frameSkip').addEventListener('input', function(e) {
+            document.getElementById('skipValue').textContent = e.target.value;
+        });
+
+        document.getElementById('downsampleRatio').addEventListener('input', function(e) {
+            document.getElementById('ratioValue').textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        document.getElementById('alertVolume').addEventListener('input', function(e) {
+            document.getElementById('volumeValue').textContent = e.target.value + '%';
+        });
+
+        async function saveSettings() {
+            const settings = {
+                ear_threshold: parseFloat(document.getElementById('earThreshold').value),
+                consecutive_frames: parseInt(document.getElementById('consecutiveFrames').value),
+                min_face_size: parseInt(document.getElementById('minFaceSize').value),
+                camera_width: parseInt(document.getElementById('cameraWidth').value),
+                camera_height: parseInt(document.getElementById('cameraHeight').value),
+                autofocus: document.getElementById('autofocus').checked,
+                auto_exposure: document.getElementById('autoExposure').checked,
+                alert_sound: document.getElementById('soundAlert').checked,
+                alert_cooldown: parseInt(document.getElementById('alertCooldown').value),
+                alert_volume: parseInt(document.getElementById('alertVolume').value),
+                frame_skip: parseInt(document.getElementById('frameSkip').value),
+                downsample_ratio: parseFloat(document.getElementById('downsampleRatio').value),
+                target_fps: parseInt(document.getElementById('targetFps').value)
+            };
+
+            try {
+                const response = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showNotification('Settings saved successfully', 'success');
+                } else {
+                    showNotification('Failed to save settings', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showNotification('Error saving settings', 'error');
+            }
+        }
+
+        function resetToDefaults() {
+            if (confirm('Reset all settings to default values?')) {
+                document.getElementById('earThreshold').value = 0.25;
+                document.getElementById('earValue').textContent = '0.25';
+                document.getElementById('consecutiveFrames').value = 15;
+                document.getElementById('framesValue').textContent = '15';
+                document.getElementById('minFaceSize').value = 60;
+                document.getElementById('cameraWidth').value = 640;
+                document.getElementById('cameraHeight').value = 480;
+                document.getElementById('autofocus').checked = true;
+                document.getElementById('autoExposure').checked = true;
+                document.getElementById('soundAlert').checked = true;
+                document.getElementById('alertCooldown').value = 3;
+                document.getElementById('alertVolume').value = 70;
+                document.getElementById('volumeValue').textContent = '70%';
+                document.getElementById('frameSkip').value = 1;
+                document.getElementById('skipValue').textContent = '1';
+                document.getElementById('downsampleRatio').value = 0.75;
+                document.getElementById('ratioValue').textContent = '0.75';
+                document.getElementById('targetFps').value = 30;
+                
+                showNotification('Settings reset to defaults', 'info');
+            }
+        }
+
+        function showNotification(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                info: 'info-circle'
+            }[type] || 'info-circle';
+            
+            toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

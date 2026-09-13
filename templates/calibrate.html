@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibration - Drowsiness Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #007aff;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
+            --background: #f2f5f9;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+        }
+        
+        .calibration-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .step-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .step-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+        
+        .step-point {
+            position: relative;
+            z-index: 2;
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #999;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .step-point.completed {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .step-point.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .video-preview {
+            width: 100%;
+            max-width: 640px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        #calibrationVideo {
+            width: 100%;
+            height: auto;
+        }
+        
+        .instruction {
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .progress-circle {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .progress-circle svg {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 8;
+        }
+        
+        .progress-circle-bg {
+            stroke: #e0e0e0;
+        }
+        
+        .progress-circle-fill {
+            stroke: var(--primary);
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.3s;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, var(--primary), #5856d6);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .result-value {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: #0051d5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,122,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="calibration-container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-magic text-primary"></i> 
+            Personal Calibration
+        </h1>
+        <p class="text-center text-muted mb-5">
+            Let's calibrate the system for your unique features
+        </p>
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step-point" id="step1">1</div>
+            <div class="step-point" id="step2">2</div>
+            <div class="step-point" id="step3">3</div>
+            <div class="step-point" id="step4">4</div>
+        </div>
+        
+        <!-- Step 1: Introduction -->
+        <div class="step-card active" id="step1Card">
+            <h3 class="mb-4">Welcome to Calibration</h3>
+            <p>We'll collect data about your eyes to make detection more accurate.</p>
+            <div class="instruction">
+                <i class="fas fa-smile text-success fa-3x mb-3"></i>
+                <h5>What we'll do:</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">✓ Collect baseline eye measurements</li>
+                    <li class="mb-2">✓ Detect if you wear glasses</li>
+                    <li class="mb-2">✓ Calculate personalized thresholds</li>
+                    <li class="mb-2">✓ Save your profile for future sessions</li>
+                </ul>
+            </div>
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Start Calibration <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 2: Normal Eyes -->
+        <div class="step-card" id="step2Card">
+            <h3 class="mb-4">Step 1: Normal Eyes</h3>
+            <p class="text-muted">Look normally at the camera with your eyes open</p>
+            
+            <div class="video-preview">
+                <img src="/video_feed" id="calibrationVideo" alt="Camera feed">
+            </div>
+            
+            <div class="progress-circle">
+                <svg width="120" height="120">
+                    <circle class="progress-circle-bg" cx="60" cy="60" r="50"></circle>
+                    <circle class="progress-circle-fill" cx="60" cy="60" r="50" id="progressCircle"></circle>
+                </svg>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            
+            <div class="instruction" id="instruction2">
+                Collecting baseline data... <span id="sampleCount">0</span>/100
+            </div>
+            
+            <div class="text-center">
+                <button class="btn btn-outline-secondary" onclick="prevStep()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Eyes Closed -->
+        <div class="step-card" id="step3Card">
+            <h3 class="mb-4">Step 2: Eyes Closed</h3>
+            <p class="text-muted">Now close your eyes naturally</p>
+            
+            <div class="video-preview">
+                <img src="/video_feed" id="calibrationVideo2" alt="Camera feed">
+            </div>
+            
+            <div class="progress-circle">
+                <svg width="120" height="120">
+                    <circle class="progress-circle-bg" cx="60" cy="60" r="50"></circle>
+                    <circle class="progress-circle-fill" cx="60" cy="60" r="50" id="progressCircle2"></circle>
+                </svg>
+                <div class="progress-text" id="progressText2">0%</div>
+            </div>
+            
+            <div class="instruction" id="instruction3">
+                Collecting closed eye data... <span id="sampleCount2">0</span>/50
+            </div>
+            
+            <div class="text-center">
+                <button class="btn btn-outline-secondary" onclick="prevStep()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 4: Results -->
+        <div class="step-card" id="step4Card">
+            <h3 class="mb-4">Calibration Complete!</h3>
+            
+            <div class="result-card">
+                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                <h4>Your Personalized Settings</h4>
+                
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <div class="small">Baseline EAR</div>
+                        <div class="result-value" id="resultEAR">0.00</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small">Threshold EAR</div>
+                        <div class="result-value" id="resultThreshold">0.00</div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <span class="badge bg-success" id="glassesBadge">No Glasses</span>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="/dashboard" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentStep = 1;
+        let samples = 0;
+        let samplesClosed = 0;
+        let earValues = [];
+        let earValuesClosed = [];
+        let glassesCount = 0;
+        
+        function nextStep() {
+            if (currentStep < 4) {
+                document.getElementById(`step${currentStep}Card`).classList.remove('active');
+                document.getElementById(`step${currentStep}`).classList.add('completed');
+                currentStep++;
+                document.getElementById(`step${currentStep}Card`).classList.add('active');
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                
+                if (currentStep === 2) {
+                    startCollection();
+                } else if (currentStep === 3) {
+                    startClosedCollection();
+                } else if (currentStep === 4) {
+                    showResults();
+                }
+            }
+        }
+        
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}Card`).classList.remove('active');
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                currentStep--;
+                document.getElementById(`step${currentStep}Card`).classList.add('active');
+                document.getElementById(`step${currentStep}`).classList.add('active');
+            }
+        }
+        
+        function startCollection() {
+            samples = 0;
+            earValues = [];
+            collectData();
+        }
+        
+        function collectData() {
+            if (samples >= 100) {
+                nextStep();
+                return;
+            }
+            
+            // Simulate data collection (replace with actual socket data)
+            setTimeout(() => {
+                samples++;
+                document.getElementById('sampleCount').textContent = samples;
+                document.getElementById('progressText').textContent = Math.round(samples) + '%';
+                
+                // Update progress circle
+                const circumference = 2 * Math.PI * 50;
+                const offset = circumference - (samples / 100) * circumference;
+                document.getElementById('progressCircle').style.strokeDashoffset = offset;
+                
+                collectData();
+            }, 30);
+        }
+        
+        function startClosedCollection() {
+            samplesClosed = 0;
+            earValuesClosed = [];
+            collectClosedData();
+        }
+        
+        function collectClosedData() {
+            if (samplesClosed >= 50) {
+                nextStep();
+                return;
+            }
+            
+            setTimeout(() => {
+                samplesClosed++;
+                document.getElementById('sampleCount2').textContent = samplesClosed;
+                document.getElementById('progressText2').textContent = Math.round(samplesClosed * 2) + '%';
+                
+                const circumference = 2 * Math.PI * 50;
+                const offset = circumference - (samplesClosed / 50) * circumference;
+                document.getElementById('progressCircle2').style.strokeDashoffset = offset;
+                
+                collectClosedData();
+            }, 30);
+        }
+        
+        function showResults() {
+            const baselineEAR = 0.28;
+            const threshold = baselineEAR * 0.85;
+            const glasses = false;
+            
+            document.getElementById('resultEAR').textContent = baselineEAR.toFixed(3);
+            document.getElementById('resultThreshold').textContent = threshold.toFixed(3);
+            document.getElementById('glassesBadge').textContent = glasses ? 'Glasses Detected' : 'No Glasses';
+            document.getElementById('glassesBadge').className = glasses ? 'badge bg-warning' : 'badge bg-success';
+        }
+    </script>
+</body>
+</html>

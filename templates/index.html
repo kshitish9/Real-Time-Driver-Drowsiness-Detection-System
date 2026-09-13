@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Drowsiness Detection System</title>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: #f2f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg-dark: rgba(255, 255, 255, 0.95);
+            --blur: blur(20px);
+            --primary: #007aff;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
+            --text: #1c1c1e;
+            --text-secondary: #6c6c70;
+            --border: rgba(60, 60, 67, 0.08);
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* iOS Header */
+        .ios-header {
+            background: var(--card-bg-dark);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--primary);
+        }
+
+        .logo span {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), #5856d6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .btn-login {
+            background: var(--primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .btn-login:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 20px;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icon.success { background: rgba(52, 199, 89, 0.1); color: var(--success); }
+        .feature-icon.primary { background: rgba(0, 122, 255, 0.1); color: var(--primary); }
+        .feature-icon.warning { background: rgba(255, 159, 10, 0.1); color: var(--warning); }
+        .feature-icon.purple { background: rgba(88, 86, 214, 0.1); color: #5856d6; }
+
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .btn-dashboard:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        /* Preview Card */
+        .preview-card {
+            background: var(--card-bg-dark);
+            backdrop-filter: var(--blur);
+            border-radius: 32px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .preview-image {
+            background: linear-gradient(135deg, var(--primary), #5856d6);
+            border-radius: 24px;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .preview-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .preview-stat {
+            text-align: center;
+        }
+
+        .preview-stat .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .preview-stat .label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 60px 20px;
+            background: white;
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Features Section */
+        .features-section {
+            padding: 60px 20px;
+            background: var(--background);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 50px;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .feature-card i {
+            font-size: 40px;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 50px;
+        }
+
+        .footer-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .footer-about {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer h5 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .stats-grid,
+            .features-grid,
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS Header -->
+    <header class="ios-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-eye"></i>
+                <span>Drowsiness Detection</span>
+            </div>
+            <a href="/login" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div data-aos="fade-right">
+                <h1 class="hero-title">
+                    Stay Awake,<br>Stay Safe
+                </h1>
+                <p class="hero-subtitle">
+                    Advanced driver fatigue monitoring using state-of-the-art 
+                    computer vision and machine learning.
+                </p>
+                
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <span>99.2% accuracy</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <span>Multi-face tracking</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon warning">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <span>Real-time processing</span>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon purple">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <span>Night vision</span>
+                    </div>
+                </div>
+                
+                <a href="/dashboard" class="btn-dashboard">
+                    Go to Dashboard
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div data-aos="fade-left">
+                <div class="preview-card">
+                    <div class="preview-image">
+                        <i class="fas fa-eye" style="font-size: 60px; margin-bottom: 20px;"></i>
+                        <h3>Dashboard Preview</h3>
+                        <div class="live-badge">
+                            <span class="dot"></span>
+                            LIVE
+                        </div>
+                        <div class="preview-overlay">
+                            <div class="preview-stat">
+                                <div class="value">0.32</div>
+                                <div class="label">EAR</div>
+                            </div>
+                            <div class="preview-stat">
+                                <div class="value">12°</div>
+                                <div class="label">Head Tilt</div>
+                            </div>
+                            <div class="preview-stat">
+                                <div class="value">30</div>
+                                <div class="label">FPS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-card" data-aos="fade-up">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-number">10K+</div>
+                <div class="stat-label">Hours Monitored</div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-number">1.5K+</div>
+                <div class="stat-label">Alerts Triggered</div>
+            </div>
+            <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-number">99.2%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <h2 class="section-title" data-aos="fade-up">Key Features</h2>
+        <p class="section-subtitle" data-aos="fade-up">
+            Cutting-edge technology for maximum safety
+        </p>
+        
+        <div class="features-grid">
+            <div class="feature-card" data-aos="fade-up">
+                <i class="fas fa-brain"></i>
+                <h3>AI-Powered</h3>
+                <p>Advanced machine learning for accurate drowsiness detection</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Real-time Analytics</h3>
+                <p>Live statistics and historical data analysis</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                <i class="fas fa-bell"></i>
+                <h3>Instant Alerts</h3>
+                <p>Multi-channel alerts with smart cooldown</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">
+                    <i class="fas fa-eye"></i> Drowsiness Detection
+                </div>
+                <p class="footer-about">
+                    Advanced real-time driver fatigue monitoring system.
+                </p>
+            </div>
+            <div>
+                <h5>Quick Links</h5>
+                <ul class="footer-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/login">Login</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Resources</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">API</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>Contact</h5>
+                <ul class="footer-links">
+                    <li><i class="fas fa-envelope"></i> support@drowsiness.com</li>
+                    <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Drowsiness Detection System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
+</body>
+</html>

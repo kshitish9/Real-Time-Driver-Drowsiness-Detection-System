@@ -1,0 +1,73 @@
+server:
+  host: 127.0.0.1
+  port: 5000
+  debug: true
+  secret_key: change_this_in_production_2024
+
+database:
+  path: drowsiness.db
+
+detection:
+  consecutive_frames: 8
+  ear_threshold: 0.20
+  mouth_ar_threshold: 0.6
+  head_tilt_threshold: 15
+  head_pitch_threshold: 20
+  yawn_consecutive_frames: 10
+  perclos_threshold: 0.15
+  brightness_threshold: 70
+  min_face_size: 60
+  min_confidence: 65
+  adaptive_threshold: true
+  adaptive_window: 300
+  blink_filter_frames: 4
+
+glasses:
+  enabled: true
+  mode_enabled: true
+  calibrated_ear: 0.354
+  threshold_adjustment: 0.85
+  reflection_compensation: true
+  pupil_detection: true
+
+night_mode:
+  enabled: true
+  gamma: 0.7
+  clahe_clip: 3.0
+  clahe_grid_size: [8, 8]
+  bilateral_filter: true
+  brightness_threshold: 80
+  target_brightness: 120
+  auto_adjust: true
+
+camera:
+  device_id: 0
+  width: 640
+  height: 480
+  fps: 30
+  autofocus: true
+  auto_exposure: true
+  buffer_size: 1
+
+performance:
+  skip_frames: 1
+  downsample_ratio: 0.75
+
+alerts:
+  sound: true
+  sound_file: alerts/wake_off.wav
+  ultra_sound_file: static/sounds/alert_10sec_ultra.wav
+  cooldown: 5
+  volume: 0.9
+
+storage:
+  save_screenshots: true
+  screenshot_dir: captures
+  max_screenshots: 100
+  log_alerts: true
+
+models:
+  landmark_predictor: models/shape_predictor_68_face_landmarks.dat
+  use_dnn: false
+  aggressive: true
+  enabled: true

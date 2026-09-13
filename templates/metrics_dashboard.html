@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Performance Metrics - Drowsiness Detection</title>
+    
+    <!-- iOS-style fonts and icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            --background: #f2f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg-dark: rgba(255, 255, 255, 0.95);
+            --blur: blur(20px);
+            --primary: #007aff;
+            --primary-dark: #0051d5;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
+            --info: #5ac8fa;
+            --gray: #8e8e93;
+            --light-gray: #e5e5ea;
+            --text: #1c1c1e;
+            --text-secondary: #6c6c70;
+            --border: rgba(60, 60, 67, 0.08);
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            --shadow-hover: 0 15px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            color: var(--text);
+            padding-bottom: 30px;
+        }
+
+        .ios-header {
+            background: var(--card-bg-dark);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--primary);
+            background: rgba(0, 122, 255, 0.1);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--card-bg);
+            color: var(--primary);
+        }
+
+        .ios-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .ios-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .ios-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .badge {
+            background: var(--light-gray);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .badge.primary {
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .metric-icon.success { background: rgba(52, 199, 89, 0.1); color: var(--success); }
+        .metric-icon.primary { background: rgba(0, 122, 255, 0.1); color: var(--primary); }
+        .metric-icon.info { background: rgba(90, 200, 250, 0.1); color: var(--info); }
+        .metric-icon.warning { background: rgba(255, 159, 10, 0.1); color: var(--warning); }
+
+        .metric-icon i {
+            font-size: 24px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .metric-trend {
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .confusion-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 10px;
+        }
+
+        .confusion-cell {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .confusion-cell.tp { border-left: 4px solid var(--success); }
+        .confusion-cell.tn { border-left: 4px solid var(--info); }
+        .confusion-cell.fp { border-left: 4px solid var(--warning); }
+        .confusion-cell.fn { border-left: 4px solid var(--danger); }
+
+        .confusion-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .confusion-value {
+            font-size: 42px;
+            font-weight: 700;
+        }
+
+        .confusion-cell.tp .confusion-value { color: var(--success); }
+        .confusion-cell.tn .confusion-value { color: var(--info); }
+        .confusion-cell.fp .confusion-value { color: var(--warning); }
+        .confusion-cell.fn .confusion-value { color: var(--danger); }
+
+        .confusion-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .ios-refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ios-refresh-btn:hover {
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 12px 30px rgba(0, 122, 255, 0.6);
+        }
+
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .formula-card {
+            background: white;
+            border-radius: 18px;
+            padding: 18px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .formula-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .formula-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .formula-value {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status-dot.active { background: var(--success); animation: pulse 2s infinite; }
+        .status-dot.inactive { background: var(--gray); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .roc-explanation {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 122, 255, 0.05);
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .formula-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .confusion-value {
+                font-size: 32px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .formula-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .confusion-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS-style Header -->
+    <header class="ios-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-chart-bar"></i>
+                <h1>Performance Metrics</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard" class="nav-link">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/analytics" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="/settings" class="nav-link">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <div style="display: flex; align-items: center; gap: 8px; margin-left: 10px;">
+                    <span class="status-dot active" id="statusDot"></span>
+                    <span class="badge primary" id="updateStatus">Live</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="ios-container">
+        <!-- Key Metrics Row -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="metric-value" id="accuracy">0%</div>
+                <div class="metric-label">Accuracy</div>
+                <div class="metric-trend" id="accuracyTrend">±0%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-icon primary">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="metric-value" id="precision">0%</div>
+                <div class="metric-label">Precision</div>
+                <div class="metric-trend" id="precisionTrend">±0%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-icon info">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="metric-value" id="recall">0%</div>
+                <div class="metric-label">Recall</div>
+                <div class="metric-trend" id="recallTrend">±0%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-icon warning">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="metric-value" id="f1">0%</div>
+                <div class="metric-label">F1-Score</div>
+                <div class="metric-trend" id="f1Trend">±0%</div>
+            </div>
+        </div>
+
+        <!-- Main Row -->
+        <div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Confusion Matrix Card -->
+            <div class="ios-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-table"></i>
+                        Confusion Matrix
+                    </div>
+                    <span class="badge">Real-time</span>
+                </div>
+                <div class="confusion-grid">
+                    <div class="confusion-cell tp">
+                        <div class="confusion-label">True Positive</div>
+                        <div class="confusion-value" id="tp">0</div>
+                        <div class="confusion-desc">Correctly detected drowsy</div>
+                    </div>
+                    <div class="confusion-cell fp">
+                        <div class="confusion-label">False Positive</div>
+                        <div class="confusion-value" id="fp">0</div>
+                        <div class="confusion-desc">False alarm</div>
+                    </div>
+                    <div class="confusion-cell fn">
+                        <div class="confusion-label">False Negative</div>
+                        <div class="confusion-value" id="fn">0</div>
+                        <div class="confusion-desc">Missed drowsy</div>
+                    </div>
+                    <div class="confusion-cell tn">
+                        <div class="confusion-label">True Negative</div>
+                        <div class="confusion-value" id="tn">0</div>
+                        <div class="confusion-desc">Correctly awake</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <span style="font-weight: 600;">Total Samples:</span>
+                    <span style="margin-left: 10px; font-size: 18px; font-weight: 700;" id="totalSamples">0</span>
+                </div>
+            </div>
+
+            <!-- ROC Curve Card -->
+            <div class="ios-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-chart-line"></i>
+                        ROC Curve
+                    </div>
+                    <span class="badge" id="auc">AUC: 0.00</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="rocChart"></canvas>
+                </div>
+                <div class="roc-explanation" id="rocExplanation">
+                    Perfect classifier: TPR=100%, FPR=0%<br>
+                    Random classifier: diagonal line
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula Explanations -->
+        <div class="ios-card" style="margin-top: 20px;">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-calculator"></i>
+                    How Metrics Are Calculated
+                </div>
+                <span class="badge">Formulas</span>
+            </div>
+            <div class="formula-grid">
+                <div class="formula-card">
+                    <div class="formula-title">Accuracy</div>
+                    <div class="formula-value" id="accuracyFormula">(TP + TN) / Total</div>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-title">Precision</div>
+                    <div class="formula-value" id="precisionFormula">TP / (TP + FP)</div>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-title">Recall</div>
+                    <div class="formula-value" id="recallFormula">TP / (TP + FN)</div>
+                </div>
+                <div class="formula-card">
+                    <div class="formula-title">F1-Score</div>
+                    <div class="formula-value" id="f1Formula">2×(P×R)/(P+R)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Time Card -->
+        <div class="ios-card" style="margin-top: 20px;">
+            <div class="card-header">
+                <div class="card-title">
+                    <i class="fas fa-clock"></i>
+                    System Performance
+                </div>
+                <span class="badge">Live</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 10px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--primary);" id="responseTime">0.00s</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Avg Response Time</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--success);" id="fpr">0%</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">False Positive Rate</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--danger);" id="fnr">0%</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">False Negative Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- iOS-style Refresh Button -->
+    <button class="ios-refresh-btn" onclick="fetchMetrics()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <script>
+        let rocChart;
+        let previousMetrics = {};
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        function fetchMetrics() {
+            document.getElementById('updateStatus').textContent = 'Updating...';
+            
+            fetch('/api/metrics', {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.metrics) {
+                        updateMetrics(data.metrics);
+                        if (data.roc) {
+                            updateROC(data.roc, data.metrics);
+                        }
+                        document.getElementById('updateStatus').textContent = 'Live';
+                        document.getElementById('statusDot').style.background = '#34c759';
+                        retryCount = 0;
+                    } else {
+                        throw new Error('Invalid data format');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching metrics:', error);
+                    retryCount++;
+                    
+                    if (retryCount <= MAX_RETRIES) {
+                        document.getElementById('updateStatus').textContent = `Retry ${retryCount}/${MAX_RETRIES}...`;
+                    } else {
+                        document.getElementById('updateStatus').textContent = 'Offline';
+                        document.getElementById('statusDot').style.background = '#8e8e93';
+                        showErrorState();
+                    }
+                });
+        }
+
+        function showErrorState() {
+            document.getElementById('accuracy').textContent = '?%';
+            document.getElementById('precision').textContent = '?%';
+            document.getElementById('recall').textContent = '?%';
+            document.getElementById('f1').textContent = '?%';
+            document.getElementById('tp').textContent = '?';
+            document.getElementById('tn').textContent = '?';
+            document.getElementById('fp').textContent = '?';
+            document.getElementById('fn').textContent = '?';
+            document.getElementById('totalSamples').textContent = '?';
+            document.getElementById('responseTime').textContent = '?.??s';
+            document.getElementById('fpr').textContent = '?%';
+            document.getElementById('fnr').textContent = '?%';
+        }
+
+        function updateMetrics(metrics) {
+            // Store previous values for trend calculation
+            if (Object.keys(previousMetrics).length > 0) {
+                updateTrend('accuracy', previousMetrics.accuracy, metrics.accuracy);
+                updateTrend('precision', previousMetrics.precision, metrics.precision);
+                updateTrend('recall', previousMetrics.recall, metrics.recall);
+                updateTrend('f1', previousMetrics.f1_score, metrics.f1_score);
+            }
+            
+            // Update main metrics
+            document.getElementById('accuracy').textContent = (metrics.accuracy || 0) + '%';
+            document.getElementById('precision').textContent = (metrics.precision || 0) + '%';
+            document.getElementById('recall').textContent = (metrics.recall || 0) + '%';
+            document.getElementById('f1').textContent = (metrics.f1_score || 0) + '%';
+            
+            // Update confusion matrix
+            document.getElementById('tp').textContent = metrics.tp || 0;
+            document.getElementById('tn').textContent = metrics.tn || 0;
+            document.getElementById('fp').textContent = metrics.fp || 0;
+            document.getElementById('fn').textContent = metrics.fn || 0;
+            
+            // Update total samples
+            const total = (metrics.tp || 0) + (metrics.tn || 0) + (metrics.fp || 0) + (metrics.fn || 0);
+            document.getElementById('totalSamples').textContent = total;
+            
+            // Update formulas
+            document.getElementById('accuracyFormula').innerHTML = 
+                `(${metrics.tp || 0} + ${metrics.tn || 0}) / ${total} = ${metrics.accuracy || 0}%`;
+            document.getElementById('precisionFormula').innerHTML = 
+                `${metrics.tp || 0} / (${metrics.tp || 0} + ${metrics.fp || 0}) = ${metrics.precision || 0}%`;
+            document.getElementById('recallFormula').innerHTML = 
+                `${metrics.tp || 0} / (${metrics.tp || 0} + ${metrics.fn || 0}) = ${metrics.recall || 0}%`;
+            document.getElementById('f1Formula').innerHTML = 
+                `2×(${metrics.precision || 0}×${metrics.recall || 0})/(${metrics.precision || 0}+${metrics.recall || 0}) = ${metrics.f1_score || 0}%`;
+            
+            // Update performance metrics
+            document.getElementById('responseTime').textContent = (metrics.avg_response_time || 0).toFixed(2) + 's';
+            document.getElementById('fpr').textContent = (metrics.false_positive_rate || 0) + '%';
+            document.getElementById('fnr').textContent = (metrics.false_negative_rate || 0) + '%';
+            
+            // Store current metrics for next comparison
+            previousMetrics = { ...metrics };
+        }
+
+        function updateTrend(metricId, oldValue, newValue) {
+            if (oldValue === undefined || newValue === undefined) return;
+            
+            const trend = document.getElementById(metricId + 'Trend');
+            const diff = (newValue - oldValue).toFixed(1);
+            
+            if (diff > 0) {
+                trend.innerHTML = `+${diff}%`;
+                trend.style.color = '#34c759';
+            } else if (diff < 0) {
+                trend.innerHTML = `${diff}%`;
+                trend.style.color = '#ff3b30';
+            } else {
+                trend.innerHTML = '±0%';
+                trend.style.color = '#8e8e93';
+            }
+        }
+
+        // FIXED: CORRECT ROC CURVE GENERATION
+        function updateROC(roc, metrics) {
+            if (!roc || !metrics) return;
+            
+            // Calculate correct TPR and FPR from metrics
+            const tpr = metrics.recall / 100;  // True Positive Rate
+            const fpr = metrics.false_positive_rate / 100;  // False Positive Rate
+            
+            console.log(`📊 ROC Data: TPR=${tpr}, FPR=${fpr}`);
+            
+            // Generate correct ROC curve points
+            // For a binary classifier, ROC curve should have exactly 3 points:
+            // 1. (0,0) - Perfect specificity
+            // 2. (FPR, TPR) - Your operating point
+            // 3. (1,1) - Perfect sensitivity
+            
+            const fprList = [0, fpr, 1.0];
+            const tprList = [0, tpr, 1.0];
+            
+            // Calculate AUC (Area Under Curve)
+            // For a single-point classifier, AUC = (1 + tpr - fpr) / 2
+            const correctAUC = ((1 + tpr - fpr) / 2).toFixed(3);
+            
+            if (!rocChart) {
+                const ctx = document.getElementById('rocChart').getContext('2d');
+                rocChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['0%', `${(fpr*100).toFixed(0)}%`, '100%'],
+                        datasets: [{
+                            label: 'Your Classifier',
+                            data: tprList,
+                            borderColor: '#007aff',
+                            backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: [0, 10, 0], // Big red dot at your operating point
+                            pointHoverRadius: 12,
+                            pointBackgroundColor: ['#007aff', '#ff3b30', '#007aff'],
+                            pointBorderColor: ['#007aff', '#ffffff', '#007aff'],
+                            pointBorderWidth: [1, 3, 1],
+                            tension: 0,
+                            fill: true
+                        }, {
+                            label: 'Random Classifier',
+                            data: [0, 0.5, 1.0],
+                            borderColor: '#8e8e93',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    color: '#1c1c1e',
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        if (context.dataset.label === 'Your Classifier') {
+                                            if (context.dataIndex === 0) {
+                                                return 'Perfect Specificity: (0% FPR, 0% TPR)';
+                                            } else if (context.dataIndex === 1) {
+                                                return `📍 Current Operating Point: TPR=${(tpr*100).toFixed(1)}%, FPR=${(fpr*100).toFixed(1)}%`;
+                                            } else {
+                                                return 'Perfect Sensitivity: (100% FPR, 100% TPR)';
+                                            }
+                                        }
+                                        return `${context.dataset.label}: ${(context.raw*100).toFixed(0)}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                title: { 
+                                    display: true, 
+                                    text: 'False Positive Rate (%)',
+                                    color: '#6c6c70',
+                                    font: { size: 12, weight: 'bold' }
+                                },
+                                grid: { color: 'rgba(0,0,0,0.05)' },
+                                ticks: { 
+                                    color: '#1c1c1e',
+                                    callback: function(value) {
+                                        return (value * 100).toFixed(0) + '%';
+                                    },
+                                    stepSize: 0.1
+                                },
+                                min: 0,
+                                max: 1
+                            },
+                            y: { 
+                                title: { 
+                                    display: true, 
+                                    text: 'True Positive Rate (%)',
+                                    color: '#6c6c70',
+                                    font: { size: 12, weight: 'bold' }
+                                },
+                                grid: { color: 'rgba(0,0,0,0.05)' },
+                                ticks: { 
+                                    color: '#1c1c1e',
+                                    callback: function(value) {
+                                        return (value * 100).toFixed(0) + '%';
+                                    },
+                                    stepSize: 0.1
+                                },
+                                beginAtZero: true,
+                                max: 1.0
+                            }
+                        }
+                    }
+                });
+            } else {
+                rocChart.data.labels = ['0%', `${(fpr*100).toFixed(0)}%`, '100%'];
+                rocChart.data.datasets[0].data = tprList;
+                rocChart.data.datasets[0].pointBackgroundColor = ['#007aff', '#ff3b30', '#007aff'];
+                rocChart.update();
+            }
+            
+            document.getElementById('auc').textContent = `AUC: ${correctAUC}`;
+            
+            // Add detailed explanation
+            const explanation = document.getElementById('rocExplanation');
+            if (explanation) {
+                explanation.innerHTML = `
+                    <div style="background: rgba(0,122,255,0.1); padding: 15px; border-radius: 12px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
+                            <div><span style="color: #007aff; font-weight: bold;">TPR = ${(tpr*100).toFixed(1)}%</span> (detected ${metrics.tp} of ${metrics.tp + metrics.fn} drowsy)</div>
+                            <div><span style="color: #34c759; font-weight: bold;">FPR = ${(fpr*100).toFixed(1)}%</span> (${metrics.fp} false alarms!)</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <span style="background: #007aff; color: white; padding: 4px 12px; border-radius: 20px; font-weight: bold;">
+                                AUC = ${correctAUC} ${correctAUC > 0.9 ? '🔥 Excellent!' : correctAUC > 0.8 ? '✓ Good' : '⚡ Fair'}
+                            </span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 13px; color: #666;">
+                            ⚡ ${metrics.fp === 0 ? 'Zero false positives means you never get false alarms! Your system is very conservative.' : 'System balances detection vs false alarms'}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-refresh every 3 seconds
+        setInterval(fetchMetrics, 3000);
+        
+        // Initial fetch
+        fetchMetrics();
+
+        // Add keyboard shortcut (Cmd+R / Ctrl+R) to refresh
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'r') {
+                e.preventDefault();
+                fetchMetrics();
+            }
+        });
+
+        // Pull to refresh on mobile
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, false);
+
+        document.addEventListener('touchmove', (e) => {
+            if (window.scrollY === 0 && e.touches[0].clientY > touchStartY + 50) {
+                fetchMetrics();
+            }
+        }, false);
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+drowsiness_env/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Runtime files
+logs/
+captures/
+
+# Generated data
+performance_metrics.json
+training_data.json
+fast_alert_config.json
+
+# Local model files
+*.dat
+*.pkl
+*.joblib
+*.h5
+*.keras
+*.onnx

@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - Drowsiness Detection</title>
+    
+    <!-- Bootstrap 5 (minimal, only for grid) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts - SF Pro style -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    
+    <style>
+        /* iOS-style variables */
+        :root {
+            --background: #f2f5f9;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-bg-dark: rgba(255, 255, 255, 0.95);
+            --blur: blur(20px);
+            --primary: #007aff;
+            --primary-dark: #0051d5;
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
+            --gray: #8e8e93;
+            --light-gray: #e5e5ea;
+            --text: #1c1c1e;
+            --text-secondary: #6c6c70;
+            --border: rgba(60, 60, 67, 0.08);
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+            --shadow-hover: 0 15px 30px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            color: var(--text);
+            padding-bottom: 30px;
+        }
+
+        /* iOS-style header */
+        .ios-header {
+            background: var(--card-bg-dark);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--primary);
+            background: rgba(0, 122, 255, 0.1);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 6px 12px 6px 6px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--card-bg);
+            color: var(--primary);
+        }
+
+        /* Main container */
+        .ios-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* iOS-style cards */
+        .ios-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .ios-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .badge {
+            background: var(--light-gray);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .badge.live {
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+        }
+
+        .badge.warning {
+            background: rgba(255, 159, 10, 0.1);
+            color: var(--warning);
+        }
+
+        /* Video container */
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Camera overlay */
+        .camera-overlay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .status-tag {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-tag i {
+            font-size: 12px;
+        }
+
+        .status-tag.connected i {
+            color: var(--success);
+        }
+
+        /* Camera info bar */
+        .camera-info {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .info-item i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        /* Drowsy alert overlay */
+        .drowsy-alert {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 59, 48, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+            animation: pulseAlert 1.5s infinite;
+        }
+
+        @keyframes pulseAlert {
+            0%, 100% { opacity: 0.95; }
+            50% { opacity: 1; }
+        }
+
+        .drowsy-alert i {
+            font-size: 50px;
+            color: white;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
+        }
+
+        .drowsy-alert span {
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .drowsy-alert small {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+        }
+
+        /* iOS-style metrics grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-item {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 20px;
+            padding: 15px 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        /* EAR Progress Ring (iOS-style) */
+        .ear-ring-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .progress-ring {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .progress-ring-circle-bg {
+            stroke: var(--light-gray);
+            stroke-width: 8;
+            fill: transparent;
+        }
+
+        .progress-ring-circle {
+            stroke: var(--primary);
+            stroke-width: 8;
+            fill: transparent;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .progress-ring-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .ear-info {
+            flex: 1;
+        }
+
+        .ear-info .thresholds {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .threshold-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .threshold-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .threshold-dot.normal { background: var(--success); }
+        .threshold-dot.warning { background: var(--warning); }
+        .threshold-dot.danger { background: var(--danger); }
+
+        /* Head tilt meter (iOS-style) */
+        .tilt-meter {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .tilt-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .tilt-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .tilt-value small {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .tilt-bar {
+            height: 6px;
+            background: var(--light-gray);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .tilt-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .tilt-markers {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* iOS-style buttons */
+        .ios-button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .ios-button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .ios-button.primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .ios-button.primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        .ios-button.secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .ios-button.secondary:hover:not(:disabled) {
+            background: white;
+            transform: scale(1.02);
+        }
+
+        .ios-button.danger {
+            background: var(--danger);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+        }
+
+        .ios-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* iOS-style alerts list */
+        .alerts-list {
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .alerts-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .alerts-list::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 4px;
+        }
+
+        .alerts-list::-webkit-scrollbar-thumb {
+            background: var(--gray);
+            border-radius: 4px;
+        }
+
+        .alert-item {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-item.danger {
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-item.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .alert-value {
+            font-weight: 600;
+            color: var(--danger);
+        }
+
+        /* iOS-style chart */
+        .chart-container {
+            height: 200px;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        /* Search bar (iOS-style) */
+        .search-bar {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 14px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+            margin-top: 20px;
+        }
+
+        .search-bar i {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .search-bar input::placeholder {
+            color: var(--gray);
+        }
+
+        /* Filter chips */
+        .filter-chips {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover, .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Toast notifications */
+        .toast-notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-radius: 14px;
+            padding: 14px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid;
+            max-width: 350px;
+        }
+
+        .toast-notification.success { border-left-color: var(--success); }
+        .toast-notification.error { border-left-color: var(--danger); }
+        .toast-notification.warning { border-left-color: var(--warning); }
+        .toast-notification.info { border-left-color: var(--primary); }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .ear-ring-container {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .loading {
+            background: linear-gradient(90deg, var(--light-gray) 25%, #f0f0f0 50%, var(--light-gray) 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS-style Header - UPDATED with Metrics Link -->
+    <header class="ios-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-eye"></i>
+                <h1>Drowsiness Detection</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/analytics" class="nav-link">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <!-- NEW: Metrics Link Added Here -->
+                <a href="/metrics" class="nav-link">
+                    <i class="fas fa-chart-bar"></i> Metrics
+                </a>
+                <a href="/settings" class="nav-link">
+                    <i class="fas fa-sliders-h"></i> Settings
+                </a>
+                <div class="user-menu">
+                    <div class="user-avatar">A</div>
+                    <span class="user-name">admin</span>
+                    <a href="/logout" class="nav-link" style="padding: 4px 8px;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="ios-container">
+        <!-- Status and Controls -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="ios-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-circle" id="statusDot" style="color: #ff3b30;"></i>
+                            <span id="statusText">Disconnected</span>
+                        </div>
+                        <div class="ios-button-group" style="width: 300px;">
+                            <button class="ios-button primary" id="startBtn">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="ios-button secondary" id="stopBtn" disabled>
+                                <i class="fas fa-stop"></i> Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Row -->
+        <div class="row g-4">
+            <!-- Video Feed Column -->
+            <div class="col-lg-8">
+                <div class="ios-card" style="padding: 0; overflow: hidden;">
+                    <div class="video-container">
+                        <!-- Camera Overlay -->
+                        <div class="camera-overlay">
+                            <div class="status-tag connected" id="videoBadge">
+                                <i class="fas fa-circle"></i>
+                                <span>Live</span>
+                            </div>
+                            <div class="status-tag">
+                                <i class="fas fa-video"></i>
+                                <span>Camera 1</span>
+                            </div>
+                        </div>
+
+                        <!-- Video Feed -->
+                        <img src="/video_feed" id="videoFeed" alt="Video Feed">
+
+                        <!-- Camera Info Bar -->
+                        <div class="camera-info">
+                            <div class="info-item">
+                                <i class="fas fa-user"></i>
+                                <span>Faces: <span id="faceCount">0</span></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Counter: <span id="drowsyCounter">0</span></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>FPS: <span id="fpsValue">0</span></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-eye"></i>
+                                <span id="eyeStatus">EYES OPEN</span>
+                            </div>
+                        </div>
+
+                        <!-- Drowsy Alert Overlay -->
+                        <div class="drowsy-alert" id="drowsyAlert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>DROWSY ALERT!</span>
+                            <small>Wake up!</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EAR Timeline Chart -->
+                <div class="ios-card mt-4">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Eye Aspect Ratio Timeline
+                        </div>
+                        <div class="badge">Real-time</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="earChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Column -->
+            <div class="col-lg-4">
+                <!-- Quick Metrics -->
+                <div class="ios-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Live Metrics
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value" id="earValue">0.00</div>
+                            <div class="metric-label">EAR</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="faceCount2">0</div>
+                            <div class="metric-label">Faces</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="tiltValue">0°</div>
+                            <div class="metric-label">Head Tilt</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" id="fpsValue2">0</div>
+                            <div class="metric-label">FPS</div>
+                        </div>
+                    </div>
+
+                    <!-- EAR Ring Progress (iOS-style) -->
+                    <div class="ear-ring-container">
+                        <div class="progress-ring">
+                            <svg width="100" height="100">
+                                <circle class="progress-ring-circle-bg" cx="50" cy="50" r="42"></circle>
+                                <circle class="progress-ring-circle" cx="50" cy="50" r="42" 
+                                        stroke-dasharray="264" stroke-dashoffset="0" 
+                                        id="earRing"></circle>
+                            </svg>
+                            <div class="progress-ring-text" id="earPercent">0%</div>
+                        </div>
+                        <div class="ear-info">
+                            <div style="font-weight: 600; margin-bottom: 5px;">Eye Aspect Ratio</div>
+                            <div class="thresholds">
+                                <div class="threshold-item">
+                                    <span class="threshold-dot normal"></span>
+                                    <span>Normal >0.25</span>
+                                </div>
+                                <div class="threshold-item">
+                                    <span class="threshold-dot warning"></span>
+                                    <span>Warning 0.20-0.25</span>
+                                </div>
+                                <div class="threshold-item">
+                                    <span class="threshold-dot danger"></span>
+                                    <span>Drowsy &lt;0.20</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Head Tilt Meter (iOS-style) -->
+                    <div class="tilt-meter">
+                        <div class="tilt-header">
+                            <span>Head Tilt Angle</span>
+                            <span class="tilt-value" id="tiltValueLarge">0<small>°</small></span>
+                        </div>
+                        <div class="tilt-bar">
+                            <div class="tilt-fill" id="tiltFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="tilt-markers">
+                            <span>-30°</span>
+                            <span>0°</span>
+                            <span>+30°</span>
+                        </div>
+                    </div>
+
+                    <!-- Total Alerts -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                        <span><i class="fas fa-bell" style="color: var(--primary);"></i> Total Alerts</span>
+                        <span style="font-size: 28px; font-weight: 700; color: var(--danger);" id="totalAlerts">0</span>
+                    </div>
+
+                    <!-- Recent Alerts -->
+                    <div style="margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: 600;">Recent Alerts</span>
+                            <span class="badge">Last 10</span>
+                        </div>
+                        <div class="alerts-list" id="alertList">
+                            <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                <i class="fas fa-check-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                                <div>No alerts yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Chips -->
+                <div class="filter-chips">
+                    <span class="chip active">All Time</span>
+                    <span class="chip">Today</span>
+                    <span class="chip">This Week</span>
+                    <span class="chip">This Month</span>
+                </div>
+
+                <!-- iOS-style Search Bar -->
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search alerts...">
+                    <i class="fas fa-microphone" style="color: var(--primary);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DashboardManager {
+            constructor() {
+                this.socket = io();
+                this.alertHistory = [];
+                this.charts = {};
+                this.stats = {
+                    ear: [],
+                    timestamps: []
+                };
+                this.audioEnabled = true;
+                
+                this.initializeEventListeners();
+                this.initializeCharts();
+                this.loadInitialData();
+                this.initAudio();
+            }
+
+            initAudio() {
+                document.addEventListener('click', () => {
+                    // Preload audio
+                    const audio = new Audio();
+                    audio.load();
+                }, { once: true });
+            }
+
+            playAlertSound() {
+                if (!this.audioEnabled) return;
+
+                const audio = new Audio('/static/sounds/alert.mp3');
+                audio.volume = 0.7;
+                audio.play().catch(e => {
+                    // Fallback to Web Audio API
+                    try {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.start();
+                        oscillator.stop(audioContext.currentTime + 0.5);
+                    } catch (err) {
+                        console.log('Audio not supported');
+                    }
+                });
+            }
+
+            initializeEventListeners() {
+                this.socket.on('connect', () => this.handleConnect());
+                this.socket.on('disconnect', () => this.handleDisconnect());
+                this.socket.on('detection_update', (data) => this.updateDashboard(data));
+                this.socket.on('drowsy_alert', (alert) => this.handleAlert(alert));
+
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.statusDot = document.getElementById('statusDot');
+                this.statusText = document.getElementById('statusText');
+                this.videoBadge = document.getElementById('videoBadge');
+                this.drowsyAlert = document.getElementById('drowsyAlert');
+                this.eyeStatus = document.getElementById('eyeStatus');
+                
+                this.earValue = document.getElementById('earValue');
+                this.faceCount = document.getElementById('faceCount');
+                this.faceCount2 = document.getElementById('faceCount2');
+                this.tiltValue = document.getElementById('tiltValue');
+                this.tiltValueLarge = document.getElementById('tiltValueLarge');
+                this.tiltFill = document.getElementById('tiltFill');
+                this.fpsValue = document.getElementById('fpsValue');
+                this.fpsValue2 = document.getElementById('fpsValue2');
+                this.drowsyCounter = document.getElementById('drowsyCounter');
+                this.earRing = document.getElementById('earRing');
+                this.earPercent = document.getElementById('earPercent');
+                this.alertList = document.getElementById('alertList');
+                this.totalAlerts = document.getElementById('totalAlerts');
+
+                if (this.startBtn) {
+                    this.startBtn.addEventListener('click', () => this.startDetection());
+                }
+                if (this.stopBtn) {
+                    this.stopBtn.addEventListener('click', () => this.stopDetection());
+                }
+
+                const videoFeed = document.getElementById('videoFeed');
+                if (videoFeed) {
+                    videoFeed.onerror = () => {
+                        this.showNotification('Video feed error', 'error');
+                    };
+                }
+            }
+
+            initializeCharts() {
+                const earCtx = document.getElementById('earChart')?.getContext('2d');
+                if (earCtx) {
+                    this.charts.ear = new Chart(earCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Eye Aspect Ratio',
+                                data: [],
+                                borderColor: '#007aff',
+                                backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#007aff',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { mode: 'index', intersect: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 0.4,
+                                    grid: { color: 'rgba(0,0,0,0.05)' },
+                                    ticks: { callback: v => v.toFixed(2) }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { maxRotation: 45, maxTicksLimit: 8 }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            handleConnect() {
+                console.log('Connected to server');
+                this.statusDot.style.color = '#34c759';
+                this.statusText.textContent = 'Connected';
+                this.videoBadge.innerHTML = '<i class="fas fa-circle"></i><span>Live</span>';
+                this.showNotification('Connected to server', 'success');
+                this.fetchStatus();
+            }
+
+            handleDisconnect() {
+                console.log('Disconnected from server');
+                this.statusDot.style.color = '#ff3b30';
+                this.statusText.textContent = 'Disconnected';
+                this.videoBadge.innerHTML = '<i class="fas fa-circle"></i><span>Offline</span>';
+                this.showNotification('Disconnected from server', 'error');
+            }
+
+            updateDashboard(data) {
+                if (!data) return;
+
+                const ear = data.current_ear || 0;
+                const isDrowsy = ear < 0.2;
+                const tilt = Math.abs(data.current_tilt || 0);
+
+                // Update metrics
+                this.earValue.textContent = ear.toFixed(3);
+                this.faceCount.textContent = data.faces_detected || 0;
+                this.faceCount2.textContent = data.faces_detected || 0;
+                this.fpsValue.textContent = data.fps || 0;
+                this.fpsValue2.textContent = data.fps || 0;
+                this.drowsyCounter.textContent = data.drowsy_counter || 0;
+
+                // Update eye status
+                if (this.eyeStatus) {
+                    if (isDrowsy) {
+                        this.eyeStatus.textContent = 'EYES CLOSED';
+                        this.eyeStatus.style.color = '#ff3b30';
+                    } else {
+                        this.eyeStatus.textContent = 'EYES OPEN';
+                        this.eyeStatus.style.color = '#34c759';
+                    }
+                }
+
+                // Update head tilt
+                if (this.tiltValue) {
+                    this.tiltValue.textContent = tilt.toFixed(1) + '°';
+                }
+                if (this.tiltValueLarge) {
+                    this.tiltValueLarge.innerHTML = tilt.toFixed(1) + '<small>°</small>';
+                }
+                if (this.tiltFill) {
+                    const tiltPercent = Math.min((tilt / 30) * 100, 100);
+                    this.tiltFill.style.width = tiltPercent + '%';
+                }
+
+                // Update EAR ring
+                if (this.earRing) {
+                    const circumference = 2 * Math.PI * 42;
+                    const earPercent = Math.min((ear / 0.3) * 100, 100);
+                    const offset = circumference - (earPercent / 100) * circumference;
+                    this.earRing.style.strokeDashoffset = offset;
+                    
+                    // Color code the ring
+                    if (isDrowsy) {
+                        this.earRing.style.stroke = '#ff3b30';
+                    } else if (ear < 0.25) {
+                        this.earRing.style.stroke = '#ff9f0a';
+                    } else {
+                        this.earRing.style.stroke = '#34c759';
+                    }
+                }
+
+                if (this.earPercent) {
+                    const percent = Math.min((ear / 0.3) * 100, 100).toFixed(1);
+                    this.earPercent.textContent = percent + '%';
+                }
+
+                // Update chart
+                this.updateChart(data);
+            }
+
+            updateChart(data) {
+                if (!this.charts.ear) return;
+
+                const now = new Date().toLocaleTimeString();
+                this.stats.timestamps.push(now);
+                this.stats.ear.push(data.current_ear || 0);
+
+                if (this.stats.timestamps.length > 30) {
+                    this.stats.timestamps.shift();
+                    this.stats.ear.shift();
+                }
+
+                this.charts.ear.data.labels = this.stats.timestamps;
+                this.charts.ear.data.datasets[0].data = this.stats.ear;
+                this.charts.ear.update('none');
+            }
+
+            handleAlert(alert) {
+                this.alertHistory.unshift(alert);
+                if (this.alertHistory.length > 10) this.alertHistory.pop();
+
+                // Show alert overlay
+                if (this.drowsyAlert) {
+                    this.drowsyAlert.style.display = 'flex';
+                    setTimeout(() => {
+                        this.drowsyAlert.style.display = 'none';
+                    }, 3000);
+                }
+
+                // Add to list
+                this.addAlertToList(alert);
+                
+                // Show notification
+                this.showNotification('⚠️ Drowsiness Detected!', 'warning');
+                
+                // Play sound
+                this.playAlertSound();
+
+                // Update total alerts
+                if (this.totalAlerts) {
+                    this.totalAlerts.textContent = this.alertHistory.length;
+                }
+            }
+
+            addAlertToList(alert) {
+                if (!this.alertList) return;
+
+                const time = new Date().toLocaleTimeString();
+                
+                if (this.alertList.children.length === 1 && 
+                    this.alertList.children[0].querySelector('.fa-check-circle')) {
+                    this.alertList.innerHTML = '';
+                }
+                
+                const alertItem = document.createElement('div');
+                alertItem.className = 'alert-item danger';
+                alertItem.innerHTML = `
+                    <div>
+                        <div style="font-weight: 500;">Alert #${this.alertHistory.length}</div>
+                        <div class="alert-time">${time}</div>
+                    </div>
+                    <div class="alert-value">${alert.ear?.toFixed(3) || '0.00'}</div>
+                `;
+                
+                this.alertList.insertBefore(alertItem, this.alertList.firstChild);
+                
+                while (this.alertList.children.length > 10) {
+                    this.alertList.removeChild(this.alertList.lastChild);
+                }
+            }
+
+            async startDetection() {
+                try {
+                    const response = await fetch('/api/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        this.startBtn.disabled = true;
+                        this.stopBtn.disabled = false;
+                        this.showNotification('Detection started', 'success');
+                    } else {
+                        this.showNotification('Error: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Failed to start detection', 'error');
+                }
+            }
+
+            async stopDetection() {
+                try {
+                    const response = await fetch('/api/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        this.startBtn.disabled = false;
+                        this.stopBtn.disabled = true;
+                        this.showNotification('Detection stopped', 'info');
+                    }
+                } catch (error) {
+                    console.error('Error stopping detection:', error);
+                }
+            }
+
+            async fetchStatus() {
+                try {
+                    const response = await fetch('/api/status');
+                    const data = await response.json();
+                    
+                    if (data.active) {
+                        this.startBtn.disabled = true;
+                        this.stopBtn.disabled = false;
+                    } else {
+                        this.startBtn.disabled = false;
+                        this.stopBtn.disabled = true;
+                    }
+                    
+                    if (data.stats) {
+                        this.updateDashboard(data.stats);
+                    }
+                } catch (error) {
+                    console.error('Status fetch error:', error);
+                }
+            }
+
+            async loadInitialData() {
+                try {
+                    const response = await fetch('/api/alerts');
+                    const data = await response.json();
+                    
+                    if (data.alerts && data.alerts.length > 0) {
+                        this.alertHistory = data.alerts.slice(0, 10);
+                        this.alertHistory.forEach(alert => this.addAlertToList(alert));
+                        
+                        if (this.totalAlerts) {
+                            this.totalAlerts.textContent = data.alerts.length;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to load alerts:', error);
+                }
+                
+                setInterval(() => this.fetchStatus(), 1000);
+            }
+
+            showNotification(message, type) {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification ${type}`;
+                
+                const icon = {
+                    success: 'check-circle',
+                    error: 'exclamation-circle',
+                    warning: 'exclamation-triangle',
+                    info: 'info-circle'
+                }[type] || 'info-circle';
+                
+                toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.remove(), 3000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dashboard = new DashboardManager();
+        });
+    </script>
+</body>
+</html>
