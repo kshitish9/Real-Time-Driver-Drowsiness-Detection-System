@@ -2,6 +2,8 @@
 
 A real-time drowsiness detection system using computer vision and machine learning. Monitors driver fatigue through eye aspect ratio (EAR) and provides instant alerts.
 
+![Dashboard Preview](screenshots/dashboard-preview.png)
+
 ## ✨ Features
 
 - **Real-time Detection** - Monitors eye closure using Eye Aspect Ratio (EAR)
