@@ -26,5 +26,6 @@ A real-time drowsiness detection system using computer vision and machine learni
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/drowsiness-detection.git
+git clone https://github.com/kshitish9/Real-Time-Driver-Drowsiness-Detection-System.git
 cd drowsiness-detection
+cd Real-Time-Driver-Drowsiness-Detection-System
